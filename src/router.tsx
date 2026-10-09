@@ -6,6 +6,11 @@ import { useAuthStore } from '@/store/auth';
 import { LoginPage } from '@/pages/Auth/LoginPage';
 import { RegisterPage } from '@/pages/Auth/RegisterPage';
 import { AdminDashboard } from '@/pages/Admin/AdminDashboard';
+import { UsersPage } from './pages/Admin/UserPage';
+import { CategoriesPage } from '@/pages/Admin/CategoriesPage'
+import { TeamsPage } from './pages/Admin/TeamsPage';
+import { TeamDetailPage } from './components/shared/TeamDetail';
+import { ReportsPage } from './pages/Admin/ReportsPage';
 import { StaffDashboard } from '@/pages/Staff/StaffDashboard';
 import { StaffTicketsPage } from '@/pages/Staff/StaffTickets';
 import { NewTicketPage } from '@/pages/Staff/NewTicket';
@@ -13,6 +18,7 @@ import { TicketDetailPage } from './components/shared/TicketDetail';
 import { AgentDashboard } from '@/pages/Expert/AgentDashboard';
 import { UnauthorizedPage } from '@/pages/UnauthorizedPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
+
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
@@ -27,7 +33,14 @@ export const router = createBrowserRouter([
         children: [
           {
             element: <ProtectedRoute allowedRoles={['admin']} />,
-            children: [{ path: '/admin', element: <AdminDashboard /> }],
+            children: [
+              { path: '/admin', element: <AdminDashboard /> },
+              { path: '/admin/users', element: <UsersPage /> },
+              { path: '/admin/teams', element: <TeamsPage />},
+              { path: '/admin/teams/:teamid', element: <TeamDetailPage />},
+              { path: '/admin/categories', element: <CategoriesPage />},
+              { path: '/admin/reports', element: <ReportsPage />},
+            ],
           },
           {
             element: <ProtectedRoute allowedRoles={['staff']} />,

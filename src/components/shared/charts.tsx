@@ -3,6 +3,7 @@ import {
   BarChart, Bar, PieChart, Pie, Legend,
 } from 'recharts';
 import type { TrendPoint, CategoryBucket, PriorityBucket, TeamPerformance } from '@/types/admin';
+import type { ReportTrendPoint } from '@/types/report';
 
 /* ─── Palette ─────────────────────────────────────────────── */
 const PALETTE = ['#1f5fa8', '#4c81c8', '#7da5db', '#b45309', '#047857', '#6d28d9'];
@@ -14,7 +15,7 @@ const PRIORITY_COLORS: Record<string, string> = {
   LOW:      '#6b7681',
 };
 
-const tooltipStyle = {
+export const tooltipStyle = {
   borderRadius: 8,
   border: '1px solid #e2e6ea',
   fontSize: 12,
@@ -268,5 +269,57 @@ function Empty({ label }: { label: string }) {
     <div className="h-64 flex items-center justify-center text-xs text-ink-400">
       {label}
     </div>
+  );
+}
+
+export function ReportTrendChart({ data }: { data: ReportTrendPoint[] }) {
+  if (!data.length) return <Empty label="No trend data for this range." />;
+
+  return (
+    <ResponsiveContainer width="100%" height={260}>
+      <AreaChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="reportCreated" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#1f5fa8" stopOpacity={0.25} />
+            <stop offset="100%" stopColor="#1f5fa8" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id="reportResolved" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#047857" stopOpacity={0.25} />
+            <stop offset="100%" stopColor="#047857" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f1f3f5" vertical={false} />
+        <XAxis
+          dataKey="date"
+          tick={{ fontSize: 11, fill: '#97a1ac' }}
+          tickLine={false}
+          axisLine={false}
+          tickFormatter={(v) => v.slice(5)}
+        />
+        <YAxis
+          tick={{ fontSize: 11, fill: '#97a1ac' }}
+          tickLine={false}
+          axisLine={false}
+          allowDecimals={false}
+        />
+        <Tooltip contentStyle={tooltipStyle} />
+        <Area
+          type="monotone"
+          dataKey="created"
+          stroke="#1f5fa8"
+          strokeWidth={2}
+          fill="url(#reportCreated)"
+          name="Created"
+        />
+        <Area
+          type="monotone"
+          dataKey="resolved"
+          stroke="#047857"
+          strokeWidth={2}
+          fill="url(#reportResolved)"
+          name="Resolved"
+        />
+      </AreaChart>
+    </ResponsiveContainer>
   );
 }

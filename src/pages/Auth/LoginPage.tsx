@@ -55,12 +55,12 @@ export function LoginPage() {
             NTC
           </div>
           <div>
-            <p className="text-sm font-semibold">Nepal Telecom</p>
+            <p className="text-sm font-semibold">SmartNTTV</p>
             <p className="text-[11px] text-white/60 uppercase tracking-[0.15em]">
               Ticket Distribution
             </p>
           </div>
-        </div>
+        </div>  
 
         <div className="max-w-md">
           <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">Internal system</p>
@@ -147,7 +147,7 @@ export function LoginPage() {
           <p className="mt-8 text-xs text-ink-500">
             Need an account?{' '}
             <Link to="/register" className="text-ink-900 font-medium underline underline-offset-2">
-              Register as staff
+              Register Here
             </Link>
           </p>
         </div>

@@ -11,3 +11,15 @@ export interface Team {
   members: UserSummary[];
   memberCount: number;
 }
+
+export interface TeamDetail extends Team {
+  memberDetails: Array<{
+    id: string;
+    username: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    level?: TeamLevel;
+    isActive: boolean;
+  }>;
+}

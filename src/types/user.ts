@@ -21,4 +21,5 @@ export interface UserSummary {
   id: string;
   username: string;
   role: UserRole;
+  level?: TeamLevel;
 }

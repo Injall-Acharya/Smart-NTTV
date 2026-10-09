@@ -1,10 +1,11 @@
 import { http, HttpResponse, delay } from 'msw';
 import type { Notification } from '@/types/notification';
-import type { Category } from '@/types/category';
+import type { Category, CategoryStatus } from '@/types/category';
 import type { Ticket } from '@/types/ticket';
-import type { User } from '@/types/user';
-import type { TicketActivity } from '@/types/ticket';
-
+import type { User, UserRole } from '@/types/user';
+import type { Team, TeamDetail, TeamLevel } from '@/types/team';
+import type { TicketActivity } from '@/types/ticket'; 
+import type { ReportFilters, ReportSummary, DetailedReportRow, DetailedReport } from '@/types/report';
 
 const API = 'http://localhost:8000/api';
 
@@ -106,6 +107,62 @@ const MOCK_USERS: MockUser[] = [
     isActive: true,
     createdAt: new Date('2025-02-15').toISOString(),
   },
+  {
+    id: 'agent_hw_1',
+    username: 'dipak',
+    password: 'dipak123',
+    email: 'dipak@ntc.com.np',
+    firstName: 'Dipak',
+    lastName: 'Tamang',
+    role: 'agent',
+    level: 'L1',
+    teamId: 'team_hw_l1',
+    teamName: 'Hardware L1',
+    isActive: true,
+    createdAt: new Date('2025-03-01').toISOString(),
+  },
+  {
+    id: 'agent_sw_1',
+    username: 'nisha',
+    password: 'nisha123',
+    email: 'nisha@ntc.com.np',
+    firstName: 'Nisha',
+    lastName: 'Sharma',
+    role: 'agent',
+    level: 'L1',
+    teamId: 'team_sw_l1',
+    teamName: 'Software L1',
+    isActive: true,
+    createdAt: new Date('2025-03-05').toISOString(),
+  },
+  {
+    id: 'agent_sw_2',
+    username: 'prakash',
+    password: 'prakash123',
+    email: 'prakash@ntc.com.np',
+    firstName: 'Prakash',
+    lastName: 'Adhikari',
+    role: 'agent',
+    level: 'L1',
+    teamId: 'team_sw_l1',
+    teamName: 'Software L1',
+    isActive: true,
+    createdAt: new Date('2025-03-10').toISOString(),
+  },
+  {
+    id: 'agent_sw_3',
+    username: 'sarita',
+    password: 'sarita123',
+    email: 'sarita@ntc.com.np',
+    firstName: 'Sarita',
+    lastName: 'Khadka',
+    role: 'agent',
+    level: 'L1',
+    teamId: 'team_sw_l1',
+    teamName: 'Software L1',
+    isActive: true,
+    createdAt: new Date('2025-03-15').toISOString(),
+  },
 ];
 
 const MOCK_CATEGORIES: Category[] = [
@@ -184,6 +241,22 @@ const mockTickets: Ticket[] = [
     id: 'tkt_1050fwd',
     title: 'Cannot print from my laptop',
     description: 'Printer shows "offline" for my laptop but others can print fine.',
+    priority: 'MEDIUM',
+    status: 'FORWARDED_BACK',
+    categoryId: 'cat_hardware',
+    categoryName: 'Hardware',
+    createdById: 'usr_self',
+    createdByName: 'sita',
+    createdByRole: 'staff',
+    assignedToId: 'agent_hari',
+    assignedToName: 'hari.bhatta',
+    createdAt: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+    updatedAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+  },
+  {
+    id: 'tkt_1051fwd',
+    title: 'Testing',
+    description: 'Testing for forwarded back tickets.',
     priority: 'MEDIUM',
     status: 'FORWARDED_BACK',
     categoryId: 'cat_hardware',
@@ -323,10 +396,83 @@ const mockTickets: Ticket[] = [
 ];
 
 // A reference table for the mock's eligible-target logic
-const MOCK_TEAMS = [
-  { id: 'team_net_l1',  name: 'Network L1',  categoryId: 'cat_network',  level: 'L1' as const },
-  { id: 'team_net_l2',  name: 'Network L2',  categoryId: 'cat_network',  level: 'L2' as const },
-  { id: 'team_infra_l3', name: 'Infra L3',   categoryId: 'cat_network',  level: 'L3' as const },
+const MOCK_TEAMS: Team[] = [
+  {
+    id: 'team_net_l1',
+    name: 'Network L1',
+    categoryId: 'cat_network',
+    categoryName: 'Network',
+    level: 'L1',
+    members: [
+      { id: 'agent_ram',   username: 'ram',   role: 'agent', level: 'L1' },
+      { id: 'agent_l1_anita', username: 'anita', role: 'agent', level: 'L1' },
+    ],
+    memberCount: 2,
+  },
+  {
+    id: 'team_net_l2',
+    name: 'Network L2',
+    categoryId: 'cat_network',
+    categoryName: 'Network',
+    level: 'L2',
+    members: [
+      { id: 'agent_l2_bikash', username: 'bikash', role: 'agent', level: 'L2' },
+    ],
+    memberCount: 1,
+  },
+  {
+    id: 'team_net_l3',
+    name: 'Network L3',
+    categoryId: 'cat_network',
+    categoryName: 'Network',
+    level: 'L3',
+    members: [],
+    memberCount: 0,
+  },
+  {
+    id: 'team_hw_l1',
+    name: 'Hardware L1',
+    categoryId: 'cat_hardware',
+    categoryName: 'Hardware',
+    level: 'L1',
+    members: [
+      { id: 'agent_hw_1', username: 'dipak', role: 'agent', level: 'L1' },
+    ],
+    memberCount: 1,
+  },
+  {
+    id: 'team_hw_l2',
+    name: 'Hardware L2',
+    categoryId: 'cat_hardware',
+    categoryName: 'Hardware',
+    level: 'L2',
+    members: [],
+    memberCount: 0,
+  },
+  {
+    id: 'team_sw_l1',
+    name: 'Software L1',
+    categoryId: 'cat_software',
+    categoryName: 'Software',
+    level: 'L1',
+    members: [
+      { id: 'agent_sw_1', username: 'nisha', role: 'agent', level: 'L1' },
+      { id: 'agent_sw_2', username: 'prakash', role: 'agent', level: 'L1' },
+      { id: 'agent_sw_3', username: 'sarita', role: 'agent', level: 'L1' },
+    ],
+    memberCount: 3,
+  },
+  {
+    id: 'team_infra_l3',
+    name: 'Infra L3',
+    categoryId: 'cat_network',
+    categoryName: 'Network',
+    level: 'L3',
+    members: [
+      { id: 'agent_l3_krishna', username: 'krishna', role: 'agent', level: 'L3' },
+    ],
+    memberCount: 1,
+  },
 ];
 
 const MOCK_ACTIVITIES: Record<string, TicketActivity[]> = {
@@ -601,6 +747,81 @@ http.post(`${API}/auth/logout/`, async () => {
 
 
   // ── Admin ─────────────────────────────────────────
+  // Admin: users
+  http.get(`${API}/admin/users/`, async () => {
+    await delay(300);
+    return HttpResponse.json(MOCK_USERS.map(toPublicUser));
+  }),
+
+  http.post(`${API}/admin/users/`, async ({ request }) => {
+    await delay(400);
+    const body = (await request.json()) as {
+      username: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      password: string;
+      role: UserRole;
+      level?: TeamLevel;
+      teamId?: string;
+    };
+
+  // Validate uniqueness
+  if (MOCK_USERS.some((u) => u.username.toLowerCase() === body.username.toLowerCase())) {
+    return HttpResponse.json(
+      { username: ['This username is already taken.'] },
+      { status: 400 }
+    );
+  }
+  if (MOCK_USERS.some((u) => u.email.toLowerCase() === body.email.toLowerCase())) {
+    return HttpResponse.json(
+      { email: ['This email is already in use.'] },
+      { status: 400 }
+    );
+  }
+
+  const newUser: MockUser = {
+    id: `usr_${Math.random().toString(36).slice(2, 10)}`,
+    username: body.username,
+    email: body.email,
+    firstName: body.firstName,
+    lastName: body.lastName,
+    password: body.password,
+    role: body.role,
+    level: body.role === 'agent' ? body.level : undefined,
+    teamId: body.role === 'agent' ? body.teamId : undefined,
+    isActive: true,
+    createdAt: new Date().toISOString(),
+  };
+
+  MOCK_USERS.push(newUser);
+  return HttpResponse.json(toPublicUser(newUser), { status: 201 });
+}),
+
+http.patch(`${API}/admin/users/:id/`, async ({ params, request }) => {
+  await delay(300);
+  const { id } = params;
+  const idx = MOCK_USERS.findIndex((u) => u.id === id);
+  if (idx === -1) {
+    return HttpResponse.json({ detail: 'User not found' }, { status: 404 });
+  }
+
+  const patch = (await request.json()) as Partial<MockUser>;
+  MOCK_USERS[idx] = { ...MOCK_USERS[idx], ...patch };
+  return HttpResponse.json(toPublicUser(MOCK_USERS[idx]));
+}),
+
+http.delete(`${API}/admin/users/:id/`, async ({ params }) => {
+  await delay(300);
+  const { id } = params;
+  const idx = MOCK_USERS.findIndex((u) => u.id === id);
+  if (idx === -1) {
+    return HttpResponse.json({ detail: 'User not found' }, { status: 404 });
+  }
+  MOCK_USERS.splice(idx, 1);
+  return HttpResponse.json({ ok: true });
+}),
+
   http.get(`${API}/admin/stats/`, async () => {
   await delay(400);
 
@@ -660,6 +881,480 @@ http.post(`${API}/auth/logout/`, async () => {
   });
   }),
 
+  http.get(`${API}/admin/reports/summary/`, async ({ request }) => {
+    await delay(500);
+    const url = new URL(request.url);
+    const dateFrom = url.searchParams.get('dateFrom');
+    const dateTo = url.searchParams.get('dateTo');
+    const status = url.searchParams.get('status');
+    const categoryId = url.searchParams.get('categoryId');
+
+    // Filter
+    const filtered = mockTickets.filter((t) => {
+      if (dateFrom && new Date(t.createdAt) < new Date(dateFrom)) return false;
+      if (dateTo && new Date(t.createdAt) > new Date(dateTo + 'T23:59:59')) return false;
+      if (status && status !== 'ALL' && t.status !== status) return false;
+      if (categoryId && categoryId !== 'ALL' && t.categoryId !== categoryId) return false;
+      return true;
+    });
+
+    const resolved = filtered.filter((t) => t.status === 'RESOLVED');
+    const totalResolutionMs = resolved.reduce((sum, t) => {
+      if (!t.resolvedAt) return sum;
+      return sum + (new Date(t.resolvedAt).getTime() - new Date(t.createdAt).getTime());
+    }, 0);
+    const avgMs = resolved.length > 0 ? totalResolutionMs / resolved.length : 0;
+
+    // Per-team
+    const teamMap = new Map<string, { name: string; level: 'L1' | 'L2' | 'L3'; received: number; resolved: number; totalMs: number; resolvedWithTime: number }>();
+    filtered.forEach((t) => {
+      if (!t.assignedTeamId) return;
+      const key = t.assignedTeamId;
+      if (!teamMap.has(key)) {
+        teamMap.set(key, {
+          name: t.assignedTeamName ?? key,
+          level: (t.level ?? 'L1') as 'L1' | 'L2' | 'L3',
+          received: 0,
+          resolved: 0,
+          totalMs: 0,
+          resolvedWithTime: 0,
+        });
+      }
+      const entry = teamMap.get(key)!;
+      entry.received += 1;
+      if (t.status === 'RESOLVED' && t.resolvedAt) {
+        entry.resolved += 1;
+        entry.totalMs += new Date(t.resolvedAt).getTime() - new Date(t.createdAt).getTime();
+        entry.resolvedWithTime += 1;
+      }
+    });
+
+    const byTeam = Array.from(teamMap.entries()).map(([teamId, v]) => ({
+      teamId,
+      teamName: v.name,
+      level: v.level,
+      received: v.received,
+      resolved: v.resolved,
+      avgResolutionHours: v.resolvedWithTime > 0
+        ? Number((v.totalMs / v.resolvedWithTime / 3600000).toFixed(1))
+        : 0,
+      resolutionRate: v.received > 0 ? Math.round((v.resolved / v.received) * 100) : 0,
+    }));
+
+    // Per-category
+    const categoryMap = new Map<string, { name: string; total: number; resolved: number }>();
+    filtered.forEach((t) => {
+      const key = t.categoryId;
+      if (!categoryMap.has(key)) {
+        categoryMap.set(key, { name: t.categoryName, total: 0, resolved: 0 });
+      }
+      const entry = categoryMap.get(key)!;
+      entry.total += 1;
+      if (t.status === 'RESOLVED') entry.resolved += 1;
+    });
+
+    const byCategory = Array.from(categoryMap.entries()).map(([categoryId, v]) => ({
+      categoryId,
+      categoryName: v.name,
+      total: v.total,
+      resolved: v.resolved,
+      unresolved: v.total - v.resolved,
+    }));
+
+    // Per-agent (assigned directly or via dispatch recipients)
+    const agentMap = new Map<
+      string,
+      {
+        username: string;
+        level: 'L1' | 'L2' | 'L3';
+        assigned: number;
+        resolved: number;
+        totalMs: number;
+        resolvedWithTime: number;
+      }
+    >();
+
+    filtered.forEach((t) => {
+      if (!t.assignedToId) return;
+      const user = MOCK_USERS.find((u) => u.id === t.assignedToId);
+      if (!user || user.role !== 'agent') return;
+
+      const key = user.id;
+      if (!agentMap.has(key)) {
+        agentMap.set(key, {
+          username: user.username,
+          level: (user.level ?? 'L1') as 'L1' | 'L2' | 'L3',
+          assigned: 0,
+          resolved: 0,
+          totalMs: 0,
+          resolvedWithTime: 0,
+        });
+      }
+
+      const entry = agentMap.get(key)!;
+      entry.assigned += 1;
+      if (t.status === 'RESOLVED' && t.resolvedAt) {
+        entry.resolved += 1;
+        entry.totalMs +=
+          new Date(t.resolvedAt).getTime() - new Date(t.createdAt).getTime();
+        entry.resolvedWithTime += 1;
+      }
+    });
+
+    const byAgent = Array.from(agentMap.entries()).map(([agentId, v]) => ({
+      agentId,
+      username: v.username,
+      level: v.level,
+      assigned: v.assigned,
+      resolved: v.resolved,
+      avgResolutionHours:
+        v.resolvedWithTime > 0
+          ? Number((v.totalMs / v.resolvedWithTime / 3_600_000).toFixed(1))
+          : 0,
+      resolutionRate:
+        v.assigned > 0 ? Math.round((v.resolved / v.assigned) * 100) : 0,
+    }));
+
+    const trendFrom = dateFrom ? new Date(dateFrom) : new Date(Date.now() - 13 * 24 * 60 * 60 * 1000);
+    const trendTo = dateTo ? new Date(dateTo) : new Date();
+
+    const dayBuckets: { date: string; created: number; resolved: number }[] = [];
+    const cursor = new Date(trendFrom);
+    cursor.setHours(0, 0, 0, 0);
+
+    while (cursor <= trendTo) {
+      const dayStart = new Date(cursor);
+      const dayEnd = new Date(cursor);
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const created = filtered.filter((t) => {
+        const d = new Date(t.createdAt);
+        return d >= dayStart && d < dayEnd;
+      }).length;
+
+      const resolved = filtered.filter((t) => {
+        if (!t.resolvedAt) return false;
+        const d = new Date(t.resolvedAt);
+        return d >= dayStart && d < dayEnd;
+      }).length;
+
+      dayBuckets.push({
+        date: cursor.toISOString().slice(0, 10),
+        created,
+        resolved,
+      });
+
+      cursor.setDate(cursor.getDate() + 1);
+
+      // Safety: don't generate more than 90 days
+      if (dayBuckets.length >= 90) break;
+    }
+
+      const summary: ReportSummary = {
+        metrics: {
+          totalTickets: filtered.length,
+          resolvedTickets: resolved.length,
+          unresolvedTickets: filtered.length - resolved.length,
+          avgResolutionHours: Number((avgMs / 3600000).toFixed(1)),
+          resolutionRate: filtered.length > 0
+            ? Math.round((resolved.length / filtered.length) * 100)
+            : 0,
+        },
+        trend: dayBuckets,
+        byTeam,
+        byCategory,
+        byAgent,
+      };
+
+    return HttpResponse.json(summary);
+  }),
+
+  http.get(`${API}/admin/reports/detailed/`, async ({ request }) => {
+    await delay(600);
+    const url = new URL(request.url);
+    const dateFrom = url.searchParams.get('dateFrom');
+    const dateTo = url.searchParams.get('dateTo');
+    const status = url.searchParams.get('status');
+    const categoryId = url.searchParams.get('categoryId');
+
+    const filtered = mockTickets.filter((t) => {
+      if (dateFrom && new Date(t.createdAt) < new Date(dateFrom)) return false;
+      if (dateTo && new Date(t.createdAt) > new Date(dateTo + 'T23:59:59')) return false;
+      if (status && status !== 'ALL' && t.status !== status) return false;
+      if (categoryId && categoryId !== 'ALL' && t.categoryId !== categoryId) return false;
+      return true;
+    });
+
+    const rows: DetailedReportRow[] = filtered.map((t) => {
+      const resolutionHours =
+        t.status === 'RESOLVED' && t.resolvedAt
+          ? Number(
+              (
+                (new Date(t.resolvedAt).getTime() - new Date(t.createdAt).getTime()) /
+                3600000
+              ).toFixed(1)
+            )
+          : undefined;
+
+      return {
+        id: t.id,
+        title: t.title,
+        categoryName: t.categoryName,
+        priority: t.priority,
+        status: t.status,
+        level: t.level,
+        createdByName: t.createdByName,
+        assignedToName: t.assignedToName,
+        assignedTeamName: t.assignedTeamName,
+        createdAt: t.createdAt,
+        updatedAt: t.updatedAt,
+        resolvedAt: t.resolvedAt,
+        resolutionHours,
+      };
+    });
+
+    const report: DetailedReport = { rows, total: rows.length };
+    return HttpResponse.json(report);
+  }),
+
+  http.get(`${API}/categories/`, async () => {
+  await delay(200);
+  const Counts = MOCK_CATEGORIES.map((c) => ({
+    ...c,
+    ticketCount: mockTickets.filter((t) => t.categoryId === c.id).length,
+  }));
+  return HttpResponse.json(Counts);
+}),
+
+  http.post(`${API}/categories/`, async ({ request }) => {
+  await delay(350);
+  const body = (await request.json()) as {
+    name: string;
+    description: string;
+    status?: CategoryStatus;
+  };
+
+  if (
+    MOCK_CATEGORIES.some(
+      (c) => c.name.toLowerCase() === body.name.trim().toLowerCase()
+    )
+  ) {
+    return HttpResponse.json(
+      { name: ['A category with this name already exists.'] },
+      { status: 400 }
+    );
+  }
+
+  const newCategory: Category = {
+    id: `cat_${Math.random().toString(36).slice(2, 8)}`,
+    name: body.name.trim(),
+    description: body.description.trim(),
+    status: body.status ?? 'active',
+  };
+
+  MOCK_CATEGORIES.push(newCategory);
+  return HttpResponse.json(newCategory, { status: 201 });
+  }),
+
+  http.patch(`${API}/categories/:id/`, async ({ params, request }) => {
+  await delay(300);
+  const idx = MOCK_CATEGORIES.findIndex((c) => c.id === params.id);
+  if (idx === -1) {
+    return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+  }
+
+  const patch = (await request.json()) as Partial<Category>;
+  MOCK_CATEGORIES[idx] = { ...MOCK_CATEGORIES[idx], ...patch };
+  return HttpResponse.json(MOCK_CATEGORIES[idx]);
+  }),
+
+  http.delete(`${API}/categories/:id/`, async ({ params }) => {
+  await delay(300);
+  const idx = MOCK_CATEGORIES.findIndex((c) => c.id === params.id);
+  if (idx === -1) {
+    return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+  }
+  MOCK_CATEGORIES.splice(idx, 1);
+  return HttpResponse.json({ ok: true });
+  }),
+
+  // ── Teams ──────────────────────────────────────────
+http.get(`${API}/teams/`, async () => {
+  await delay(250);
+  return HttpResponse.json(MOCK_TEAMS);
+}),
+
+http.get(`${API}/teams/:id/`, async ({ params }) => {
+  await delay(200);
+  const team = MOCK_TEAMS.find((t) => t.id === params.id);
+  if (!team) return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+
+  // Enrich with full member objects
+  const memberDetails = team.members
+    .map((m) => MOCK_USERS.find((u) => u.id === m.id))
+    .filter(Boolean)
+    .map((u) => ({
+      id: u!.id,
+      username: u!.username,
+      firstName: u!.firstName,
+      lastName: u!.lastName,
+      email: u!.email,
+      level: u!.level,
+      isActive: u!.isActive,
+    }));
+
+  const detail: TeamDetail = { ...team, memberDetails };
+  return HttpResponse.json(detail);
+}),
+
+http.post(`${API}/teams/`, async ({ request }) => {
+  await delay(400);
+  const body = (await request.json()) as {
+    name: string;
+    categoryId: string;
+    level: TeamLevel;
+  };
+
+  // Validate: only one team per (category, level)
+  if (
+    MOCK_TEAMS.some(
+      (t) => t.categoryId === body.categoryId && t.level === body.level
+    )
+  ) {
+    return HttpResponse.json(
+      { detail: `A ${body.level} team already exists for this category.` },
+      { status: 400 }
+    );
+  }
+
+  const category = MOCK_CATEGORIES.find((c) => c.id === body.categoryId);
+
+  const newTeam: Team = {
+    id: `team_${Math.random().toString(36).slice(2, 8)}`,
+    name: body.name.trim(),
+    categoryId: body.categoryId,
+    categoryName: category?.name ?? 'Unknown',
+    level: body.level,
+    members: [],
+    memberCount: 0,
+  };
+
+  MOCK_TEAMS.push(newTeam);
+  return HttpResponse.json(newTeam, { status: 201 });
+}),
+
+http.patch(`${API}/teams/:id/`, async ({ params, request }) => {
+  await delay(300);
+   console.log('[teams/:id]', params, MOCK_TEAMS.map((t) => t.id));
+  const idx = MOCK_TEAMS.findIndex((t) => t.id === params.id);
+  if (idx === -1) return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+
+  const patch = (await request.json()) as Partial<Team>;
+  MOCK_TEAMS[idx] = { ...MOCK_TEAMS[idx], ...patch };
+  return HttpResponse.json(MOCK_TEAMS[idx]);
+}),
+
+http.delete(`${API}/teams/:id/`, async ({ params }) => {
+  await delay(300);
+  const idx = MOCK_TEAMS.findIndex((t) => t.id === params.id);
+  if (idx === -1) return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+
+  const team = MOCK_TEAMS[idx];
+  if (team.memberCount > 0) {
+    return HttpResponse.json(
+      { detail: `Cannot delete "${team.name}" — it has ${team.memberCount} member(s). Remove them first.` },
+      { status: 400 }
+    );
+  }
+
+  MOCK_TEAMS.splice(idx, 1);
+  return HttpResponse.json({ ok: true });
+}),
+
+// ── Team membership ────────────────────────────────
+http.post(`${API}/teams/:id/members/`, async ({ params, request }) => {
+  await delay(300);
+  const idx = MOCK_TEAMS.findIndex((t) => t.id === params.id);
+  if (idx === -1) return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+
+  const body = (await request.json()) as { userId: string };
+  const team = MOCK_TEAMS[idx];
+
+  // Already a member?
+  if (team.members.some((m) => m.id === body.userId)) {
+    return HttpResponse.json({ detail: 'Already a member' }, { status: 400 });
+  }
+
+  const user = MOCK_USERS.find((u) => u.id === body.userId);
+  if (!user || user.role !== 'agent') {
+    return HttpResponse.json({ detail: 'User must be an agent' }, { status: 400 });
+  }
+
+  if (user.level !== team.level) {
+    return HttpResponse.json(
+      { detail: `Agent is ${user.level} — cannot join an ${team.level} team.` },
+      { status: 400 }
+    );
+  }
+
+  team.members.push({
+    id: user.id,
+    username: user.username,
+    role: user.role,
+    level: user.level,
+  });
+  team.memberCount = team.members.length;
+
+  // Also set user's teamId for consistency
+  user.teamId = team.id;
+
+  // Build the enriched response
+  const memberDetails = team.members
+    .map((m) => MOCK_USERS.find((u) => u.id === m.id))
+    .filter(Boolean)
+    .map((u) => ({
+      id: u!.id,
+      username: u!.username,
+      firstName: u!.firstName,
+      lastName: u!.lastName,
+      email: u!.email,
+      level: u!.level,
+      isActive: u!.isActive,
+    }));
+
+  return HttpResponse.json({ ...team, memberDetails });
+}),
+
+http.delete(`${API}/teams/:id/members/:userId/`, async ({ params }) => {
+  await delay(300);
+  const idx = MOCK_TEAMS.findIndex((t) => t.id === params.id);
+  if (idx === -1) return HttpResponse.json({ detail: 'Not found' }, { status: 404 });
+
+  const team = MOCK_TEAMS[idx];
+  const userId = params.userId as string;
+
+  team.members = team.members.filter((m) => m.id !== userId);
+  team.memberCount = team.members.length;
+
+  const user = MOCK_USERS.find((u) => u.id === userId);
+  if (user) user.teamId = undefined;
+
+  const memberDetails = team.members
+    .map((m) => MOCK_USERS.find((u) => u.id === m.id))
+    .filter(Boolean)
+    .map((u) => ({
+      id: u!.id,
+      username: u!.username,
+      firstName: u!.firstName,
+      lastName: u!.lastName,
+      email: u!.email,
+      level: u!.level,
+      isActive: u!.isActive,
+    }));
+
+  return HttpResponse.json({ ...team, memberDetails });
+}),
+
   http.get(`${API}/notifications/`, async () => {
   await delay(300);
   return HttpResponse.json(mockNotifications);
@@ -677,7 +1372,14 @@ http.post(`${API}/auth/logout/`, async () => {
   return HttpResponse.json({ ok: true });
   }),
 
-  http.get(`${API}/tickets/mine/`, async () => {
+  // ── Categories ────────────────────────────────────
+  http.get(`${API}/categories/`, async () => {
+    await delay(200);
+    return HttpResponse.json(MOCK_CATEGORIES);
+  }),
+
+  // ── Tickets ───────────────────────────────────────
+   http.get(`${API}/tickets/mine/`, async () => {
   await delay(350);
   return HttpResponse.json({
     count: mockTickets.length,
@@ -694,14 +1396,7 @@ http.post(`${API}/auth/logout/`, async () => {
   });
   }),
 
-  // ── Categories ────────────────────────────────────
-  http.get(`${API}/categories/`, async () => {
-    await delay(200);
-    return HttpResponse.json(MOCK_CATEGORIES);
-  }),
-
-  // ── Tickets ───────────────────────────────────────
-http.post(`${API}/tickets/`, async ({ request }) => {
+  http.post(`${API}/tickets/`, async ({ request }) => {
   await delay(500);
   const body = (await request.json()) as {
     title: string;
@@ -880,7 +1575,7 @@ http.post(`${API}/tickets/:id/escalate/`, async ({ params, request }) => {
   const agent = body.agentId ? MOCK_USERS.find((u) => u.id === body.agentId) : null;
 
   const fromLevel = t.level ?? 'L1';
-  const toLevel = team?.level ?? 'L2';
+  const toLevel:TeamLevel = team?.level ?? 'L2';
 
   const fromTeamName = t.assignedTeamName;
   const fromUserName = t.assignedToName;

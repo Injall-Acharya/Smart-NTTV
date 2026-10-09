@@ -46,7 +46,7 @@ export function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-ink-50 p-6">
       <div className="w-full max-w-lg bg-white rounded-xl border border-ink-200 shadow-sm p-8">
         <h1 className="text-2xl font-semibold tracking-tight">Create your account</h1>
-        <p className="mt-1.5 text-sm text-ink-500">Staff registration.</p>
+        <p className="mt-1.5 text-sm text-ink-500">Ticket submission account registration.</p>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
